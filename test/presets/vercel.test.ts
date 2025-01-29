@@ -1,6 +1,6 @@
 import { promises as fsp } from "node:fs";
 import { resolve } from "pathe";
-import { describe, it, expect } from "vitest";
+import { describe, expect, it } from "vitest";
 import { setupTest, startServer, testNitro } from "../tests";
 
 describe("nitro:preset:vercel", async () => {
@@ -25,23 +25,14 @@ describe("nitro:preset:vercel", async () => {
         expect(config).toMatchInlineSnapshot(`
           {
             "overrides": {
+              "_scalar/index.html": {
+                "path": "_scalar",
+              },
+              "_swagger/index.html": {
+                "path": "_swagger",
+              },
               "api/hey/index.html": {
                 "path": "api/hey",
-              },
-              "api/param/foo.json/index.html": {
-                "path": "api/param/foo.json",
-              },
-              "api/param/hidden/index.html": {
-                "path": "api/param/hidden",
-              },
-              "api/param/prerender1/index.html": {
-                "path": "api/param/prerender1",
-              },
-              "api/param/prerender3/index.html": {
-                "path": "api/param/prerender3",
-              },
-              "api/param/prerender4/index.html": {
-                "path": "api/param/prerender4",
               },
               "prerender/index.html": {
                 "path": "prerender",
@@ -54,6 +45,13 @@ describe("nitro:preset:vercel", async () => {
                 },
                 "src": "/rules/redirect/obj",
                 "status": 308,
+              },
+              {
+                "headers": {
+                  "Location": "https://nitro.unjs.io/$1",
+                },
+                "src": "/rules/redirect/wildcard/(.*)",
+                "status": 307,
               },
               {
                 "headers": {
@@ -89,14 +87,14 @@ describe("nitro:preset:vercel", async () => {
                   "Location": "/base",
                   "x-test": "test",
                 },
-                "src": "/rules/nested/.*",
+                "src": "/rules/nested/(.*)",
                 "status": 307,
               },
               {
                 "headers": {
                   "cache-control": "public, max-age=3600, immutable",
                 },
-                "src": "/build/.*",
+                "src": "/build/(.*)",
               },
               {
                 "continue": true,

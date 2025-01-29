@@ -1,11 +1,10 @@
 import { defineCommand } from "citty";
-import { resolve } from "pathe";
 import { consola } from "consola";
-import { createNitro } from "../../nitro";
-import { build, prepare } from "../../build";
-import { createDevServer } from "../../dev/server";
+import { getArgs, parseArgs } from "listhen/cli";
+import { build, createDevServer, createNitro, prepare } from "nitro/core";
+import type { Nitro } from "nitro/types";
+import { resolve } from "pathe";
 import { commonArgs } from "../common";
-import type { Nitro } from "../../types";
 
 const hmrKeyRe = /^runtimeConfig\.|routeRules\./;
 
@@ -16,6 +15,7 @@ export default defineCommand({
   },
   args: {
     ...commonArgs,
+    ...getArgs(),
   },
   async run({ args }) {
     const rootDir = resolve((args.dir || args._dir || ".") as string);
@@ -33,6 +33,7 @@ export default defineCommand({
           rootDir,
           dev: true,
           preset: "nitro-dev",
+          _cli: { command: "dev" },
         },
         {
           watch: true,
@@ -50,15 +51,16 @@ export default defineCommand({
               );
 
               await (diff.every((e) => hmrKeyRe.test(e.key))
-                ? nitro.updateConfig(newConfig.config) // Full reload
-                : reload()); // Hot reload
+                ? nitro.updateConfig(newConfig.config || {}) // Hot reload
+                : reload()); // Full reload
             },
           },
         }
       );
       nitro.hooks.hookOnce("restart", reload);
       const server = createDevServer(nitro);
-      await server.listen({});
+      const listhenOptions = parseArgs(args);
+      await server.listen(listhenOptions.port || 3000, listhenOptions);
       await prepare(nitro);
       await build(nitro);
     };
